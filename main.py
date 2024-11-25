@@ -37,7 +37,7 @@ def insert_batch_info(filename, graph, vertices):
                     if u not in vertices or v not in vertices:
                         print(f"Vértice(s) não encontrado(s): '{u}' ou '{v}'.")
                         continue
-                    if len(line_info) == 4 and weighted:
+                    if len(line_info) == 4 and 'weighted' in globals() and weighted:
                         weight = float(line_info[3])
                         graph.add_edge(u, v, weight=weight)
                     else:
@@ -87,7 +87,8 @@ def create_graph_from_file(filename):
         print("8. Obter grau de um vértice")
         print("9. Verificar se dois vértices são adjacentes")
         print("10. Encontrar o caminho mais curto entre dois vértices")
-        print("11. Sair")
+        print("11. Verificar se o grafo é Euleriano")
+        print("12. Sair")
 
         option = input("\nEscolha uma opção: ")
 
@@ -193,6 +194,12 @@ def create_graph_from_file(filename):
                 print("Um ou ambos os vértices não foram encontrados!")
 
         elif option == '11':
+            if nx.is_eulerian(graph):
+                print("O grafo é Euleriano.")
+            else:
+                print("O grafo não é Euleriano.")
+
+        elif option == '12':
             print("Encerrando o programa...")
             break
 

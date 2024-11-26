@@ -21,12 +21,10 @@ def insert_batch_info(filename, graph, vertices, weighted):
     try:
         with open(filename, 'r', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
-            # Standardize header names to lowercase
             headers = {header.strip().lower(): header for header in reader.fieldnames}
-            # Map the headers to expected names
             source_col = headers.get('source')
             target_col = headers.get('target')
-            weight_col = headers.get('weight') or headers.get('weigth')  # Handle typo
+            weight_col = headers.get('weight') or headers.get('weigth')
 
             if not source_col or not target_col:
                 print("Columns 'Source' and 'Target' are required in the CSV file.")

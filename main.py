@@ -1,3 +1,5 @@
+import csv
+
 import matplotlib.pyplot as plt
 import networkx as nx
 
@@ -15,38 +17,40 @@ def create_graph():
 
     return G, weighted
 
-def insert_batch_info(filename, graph, vertices):
+def insert_batch_info(filename, graph, vertices, weighted):
     try:
-        with open(filename, 'r') as file:
-            for line in file:
-                line_info = line.strip().split()
-                if not line_info:
-                    continue
-                command = line_info[0].lower()
-                if command == 'v':
-                    for vertex in line_info[1:]:
-                        if vertex not in vertices:
-                            vertices.add(vertex)
-                            graph.add_node(vertex)
-                elif command == 'e':
-                    if len(line_info) < 3:
-                        print("Linha de aresta inválida. Uso: e vertice1 vertice2 [peso]")
-                        continue
-                    u = line_info[1]
-                    v = line_info[2]
-                    if u not in vertices or v not in vertices:
-                        print(f"Vértice(s) não encontrado(s): '{u}' ou '{v}'.")
-                        continue
-                    if len(line_info) == 4 and 'weighted' in globals() and weighted:
-                        weight = float(line_info[3])
-                        graph.add_edge(u, v, weight=weight)
-                    else:
-                        graph.add_edge(u, v)
+        with open(filename, 'r', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            # Standardize header names to lowercase
+            headers = {header.strip().lower(): header for header in reader.fieldnames}
+            # Map the headers to expected names
+            source_col = headers.get('source')
+            target_col = headers.get('target')
+            weight_col = headers.get('weight') or headers.get('weigth')  # Handle typo
+
+            if not source_col or not target_col:
+                print("Columns 'Source' and 'Target' are required in the CSV file.")
+                return
+
+            for row in reader:
+                u = row[source_col].strip()
+                v = row[target_col].strip()
+                if u not in vertices:
+                    vertices.add(u)
+                    graph.add_node(u)
+                if v not in vertices:
+                    vertices.add(v)
+                    graph.add_node(v)
+                if weighted and weight_col and row[weight_col]:
+                    weight = float(row[weight_col])
+                    graph.add_edge(u, v, weight=weight)
                 else:
-                    print(f"Comando desconhecido '{command}' na linha: {line.strip()}")
+                    graph.add_edge(u, v)
         print("Informações em lote do arquivo inseridas com sucesso!")
     except FileNotFoundError:
         print("Arquivo não encontrado!")
+    except Exception as e:
+        print(f"Ocorreu um erro ao ler o arquivo CSV: {e}")
 
 def insert_batch_items(G, weighted):
     vertices_input = input("Digite os vértices separados por espaço: ").split()
@@ -73,13 +77,13 @@ def create_graph_from_file(filename):
     vertices = set()
 
     if filename:
-        insert_batch_info(filename, graph, vertices)
+        insert_batch_info(filename, graph, vertices, weighted)
 
     while True:
         print("\nOpções:")
         print("1. Adicionar vértice")
         print("2. Adicionar aresta")
-        print("3. Inserir informações em lote de um arquivo")
+        print("3. Inserir informações em lote de um arquivo CSV")
         print("4. Inserir itens em lote manualmente")
         print("5. Visualizar grafo")
         print("6. Obter ordem e tamanho do grafo")
@@ -122,8 +126,8 @@ def create_graph_from_file(filename):
             print(f"Aresta adicionada entre '{start_vertex}' e '{end_vertex}'!")
 
         elif option == '3':
-            filename = input("Insira o nome do arquivo: ")
-            insert_batch_info(filename, graph, vertices)
+            filename = input("Insira o nome do arquivo CSV: ")
+            insert_batch_info(filename, graph, vertices, weighted)
 
         elif option == '4':
             insert_batch_items(graph, weighted)
@@ -207,5 +211,5 @@ def create_graph_from_file(filename):
             print("Opção inválida! Por favor, escolha uma opção válida.")
 
 if __name__ == "__main__":
-    filename = input("Se desejar inserir informações iniciais de um arquivo, insira o nome do arquivo (ou pressione Enter para continuar): ")
+    filename = input("Se desejar inserir informações iniciais de um arquivo CSV, insira o nome do arquivo (ou pressione Enter para continuar): ")
     create_graph_from_file(filename.strip())

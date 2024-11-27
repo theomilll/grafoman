@@ -19,15 +19,15 @@ def create_graph():
 
 def insert_batch_info(filename, graph, vertices, weighted):
     try:
-        with open(filename, 'r', newline='') as csvfile:
+        with open(filename, 'r', newline='', encoding='utf-8-sig') as csvfile:
             reader = csv.DictReader(csvfile)
             headers = {header.strip().lower(): header for header in reader.fieldnames}
-            source_col = headers.get('source')
-            target_col = headers.get('target')
+            source_col = headers.get('source') or headers.get('source'.lower())
+            target_col = headers.get('target') or headers.get('target'.lower())
             weight_col = headers.get('weight') or headers.get('weigth')
 
             if not source_col or not target_col:
-                print("Columns 'Source' and 'Target' are required in the CSV file.")
+                print(f"Colunas 'Source' e 'Target' não encontradas no arquivo '{filename}'.")
                 return
 
             for row in reader:
@@ -39,16 +39,16 @@ def insert_batch_info(filename, graph, vertices, weighted):
                 if v not in vertices:
                     vertices.add(v)
                     graph.add_node(v)
-                if weighted and weight_col and row[weight_col]:
+                if weighted and weight_col and row.get(weight_col):
                     weight = float(row[weight_col])
                     graph.add_edge(u, v, weight=weight)
                 else:
                     graph.add_edge(u, v)
-        print("Informações em lote do arquivo inseridas com sucesso!")
+        print(f"Informações em lote do arquivo '{filename}' inseridas com sucesso!")
     except FileNotFoundError:
-        print("Arquivo não encontrado!")
+        print(f"Arquivo '{filename}' não encontrado!")
     except Exception as e:
-        print(f"Ocorreu um erro ao ler o arquivo CSV: {e}")
+        print(f"Ocorreu um erro ao ler o arquivo CSV '{filename}': {e}")
 
 def insert_batch_items(G, weighted):
     vertices_input = input("Digite os vértices separados por espaço: ").split()
